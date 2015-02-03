@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+    >
+
+    <TextView
+        android:id="@+id/tvFeedUsername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Instagram Username"
+        android:paddingBottom="10dp"
+        android:paddingLeft="10dp"
+        android:maxLines="1"/>
+    <TextView
+        android:id="@+id/tvFeedTimestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/tvFeedUsername"
+        android:text="23m ago"
+        android:textAlignment="textEnd"
+        android:gravity="end"
+        android:layout_alignParentRight="true"
+        android:paddingRight="10dp"
+        />
+
+    <ImageView
+        android:id="@+id/ivFeedMainImage"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_below="@id/tvFeedUsername"
+        />
+    <TextView
+        android:id="@+id/tvFeedCaption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ivFeedMainImage"
+        android:text="Feed post caption"
+        android:paddingTop="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:ellipsize="end"
+        android:maxLines="3"/>
+
+
+
+</RelativeLayout>
