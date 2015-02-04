@@ -2,18 +2,69 @@ package com.mekilah.codepath.instagramreader;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
+
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpRequest;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.mekilah.codepath.instagramreader.Models.FeedItem;
+import com.mekilah.codepath.instagramreader.Models.InstagramSpecifics;
+
+import org.apache.http.Header;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class FeedActivity extends ActionBarActivity {
+
+    ArrayList<FeedItem> feedItems;
+    FeedItem.FeedItemAdapter feedItemAdapter;
+
+    ListView lvFeedItems;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feed);
+        feedItems = new ArrayList<FeedItem>();
+        feedItemAdapter = new FeedItem.FeedItemAdapter(this, feedItems);
+
+        lvFeedItems = (ListView) findViewById(R.id.lvFeedItems);
+        lvFeedItems.setAdapter(feedItemAdapter);
 
         //GET to API
+        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        asyncHttpClient.get(InstagramSpecifics.APIURLs.PUBLIC_POPULAR + InstagramSpecifics.APIRequestParameters.CLIENT_ID + InstagramSpecifics.APITokens.CLIENT_ID, new JsonHttpResponseHandler(){
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response){
+                try{
+                    JSONArray dataArray = response.getJSONArray(InstagramSpecifics.APIResponseKeys.DATA);
+                    for(int i=0; i < dataArray.length(); ++i){
+                        JSONObject feedObj = (JSONObject)dataArray.get(i);
+                        FeedItem item  = FeedItem.BuildFromJSON(feedObj);
+                        if(item != null){
+                            feedItems.add(item);
+                        }
+                    }
+                }catch(JSONException e){
+                    Log.e("INSTA", "error while decoding JSON response.", e);
+                }
+
+                feedItemAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable){
+                Log.e("INSTA", "Failure requesting from Instagram. code=" + statusCode + ", response=" + responseString, throwable);
+            }
+        });
     }
 
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="10dp"
@@ -9,7 +10,7 @@
         android:id="@+id/tvFeedUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Instagram Username"
+        tools:text="Instagram Username"
         android:paddingBottom="10dp"
         android:paddingLeft="10dp"
         android:maxLines="1"/>
@@ -18,7 +19,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/tvFeedUsername"
-        android:text="23m ago"
+        tools:text="23m ago"
         android:textAlignment="textEnd"
         android:gravity="end"
         android:layout_alignParentRight="true"
@@ -28,15 +29,15 @@
     <ImageView
         android:id="@+id/ivFeedMainImage"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="350dp"
         android:layout_below="@id/tvFeedUsername"
-        />
+        tools:src="@drawable/ic_launcher"/>
     <TextView
         android:id="@+id/tvFeedCaption"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/ivFeedMainImage"
-        android:text="Feed post caption"
+        tools:text="Feed post caption"
         android:paddingTop="10dp"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
