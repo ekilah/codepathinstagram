@@ -1,6 +1,7 @@
 package com.mekilah.codepath.instagramreader.Models;
 
 import android.content.Context;
+import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -135,10 +136,10 @@ public class FeedItem{
             }
 
             viewTag.tvUsername.setText(item.username);
-            viewTag.tvCaption.setText(item.caption);
+            viewTag.tvCaption.setText(Html.fromHtml("<b><font color='#1C587E'>" + item.username + "</b></font>" + "  " + item.caption)); //.setText(item.caption);
             viewTag.tvTimestamp.setText(DateUtils.getRelativeTimeSpanString(item.timestampInSecs *1000, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS));
-            Picasso.with(this.getContext()).load(item.imageURL).placeholder(R.drawable.ic_launcher).into(viewTag.ivMainImage);
-            Picasso.with(this.getContext()).load(item.userProfilePictureURL).placeholder(R.drawable.ic_launcher).into(viewTag.rivFeedUserPicture);
+            Picasso.with(this.getContext()).load(item.imageURL).placeholder(R.drawable.loading_animation).into(viewTag.ivMainImage);
+            Picasso.with(this.getContext()).load(item.userProfilePictureURL).placeholder(R.drawable.loading_animation).into(viewTag.rivFeedUserPicture);
             //TODO figure out how to loc with integer insertion
             viewTag.tvLikesCount.setText("♥ " + String.valueOf(item.likesCount));
 

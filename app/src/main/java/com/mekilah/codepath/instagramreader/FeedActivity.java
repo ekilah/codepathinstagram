@@ -39,6 +39,9 @@ public class FeedActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feed);
+
+        getSupportActionBar().hide();
+
         feedItems = new ArrayList<FeedItem>();
         feedItemAdapter = new FeedItem.FeedItemAdapter(this, feedItems);
 
