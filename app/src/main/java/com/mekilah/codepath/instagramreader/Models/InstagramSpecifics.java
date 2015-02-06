@@ -19,6 +19,11 @@ public class InstagramSpecifics{
         public static final String IMAGES = "images";
         public static final String STANDARD_RES = "standard_resolution";
         public static final String USER = "user";
+        public static final String COMMENTS = "comments";
+        public static final String FROM = "from";
+        public static final String PROFILE_PICTURE = "profile_picture";
+        public static final String COUNT = "count";
+        public static final String LIKES = "likes";
 
     }
 

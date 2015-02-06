@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -21,6 +22,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
+import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
+
 
 public class FeedActivity extends ActionBarActivity {
 
@@ -28,6 +33,7 @@ public class FeedActivity extends ActionBarActivity {
     FeedItem.FeedItemAdapter feedItemAdapter;
 
     ListView lvFeedItems;
+    PullToRefreshLayout ptrFeedItems;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,10 +42,32 @@ public class FeedActivity extends ActionBarActivity {
         feedItems = new ArrayList<FeedItem>();
         feedItemAdapter = new FeedItem.FeedItemAdapter(this, feedItems);
 
-        lvFeedItems = (ListView) findViewById(R.id.lvFeedItems);
+        lvFeedItems = (ListView) this.findViewById(R.id.lvFeedItems);
         lvFeedItems.setAdapter(feedItemAdapter);
 
+        ptrFeedItems = (PullToRefreshLayout) this.findViewById(R.id.ptrFeedItems);
+        // Now setup the PullToRefreshLayout
+        ActionBarPullToRefresh.from(this)
+                // Mark All Children as pullable
+                .allChildrenArePullable()
+                        // Set a OnRefreshListener
+                .listener(new OnRefreshListener(){
+                    @Override
+                    public void onRefreshStarted(View view){
+                        asyncRefresh();
+                    }
+                })
+        // Finally commit the setup to our PullToRefreshLayout
+        .setup(ptrFeedItems);
+
+        asyncRefresh();
+
+
+    }
+
+    private void asyncRefresh(){
         //GET to API
+        feedItems.clear();
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         asyncHttpClient.get(InstagramSpecifics.APIURLs.PUBLIC_POPULAR + InstagramSpecifics.APIRequestParameters.CLIENT_ID + InstagramSpecifics.APITokens.CLIENT_ID, new JsonHttpResponseHandler(){
             @Override
@@ -58,6 +86,7 @@ public class FeedActivity extends ActionBarActivity {
                 }
 
                 feedItemAdapter.notifyDataSetChanged();
+                ptrFeedItems.setRefreshComplete();
             }
 
             @Override

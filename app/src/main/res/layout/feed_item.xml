@@ -3,47 +3,103 @@
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="10dp"
     >
+    <RelativeLayout
+        android:id="@+id/rlTopBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <com.makeramen.RoundedImageView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        tools:src="@drawable/ic_launcher"
+        android:scaleType="fitCenter"
+        app:riv_border_width="0dp"
+        app:riv_border_color="#000000"
+        app:riv_oval="true"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:id="@+id/rivFeedUserImage"
+        android:layout_marginLeft="6dp"
+        android:layout_centerVertical="true"
+        android:layout_marginBottom="15dp"
+        android:layout_alignParentLeft="true"
+        />
 
     <TextView
         android:id="@+id/tvFeedUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="Instagram Username"
-        android:paddingBottom="10dp"
-        android:paddingLeft="10dp"
-        android:maxLines="1"/>
+        android:layout_marginLeft="10dp"
+        android:maxLines="1"
+        android:layout_toRightOf="@id/rivFeedUserImage"
+        android:layout_centerVertical="true"
+        android:ellipsize="end"
+        android:layout_toLeftOf="@+id/tvFeedItemTimestamp"
+
+
+        />
     <TextView
-        android:id="@+id/tvFeedTimestamp"
+        android:id="@+id/tvFeedItemTimestamp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/tvFeedUsername"
         tools:text="23m ago"
         android:textAlignment="textEnd"
         android:gravity="end"
         android:layout_alignParentRight="true"
-        android:paddingRight="10dp"
-        />
+        android:layout_marginRight="10dp"
+        android:layout_centerVertical="true"
 
+        />
+    </RelativeLayout>
     <ImageView
         android:id="@+id/ivFeedMainImage"
         android:layout_width="match_parent"
-        android:layout_height="350dp"
-        android:layout_below="@id/tvFeedUsername"
-        tools:src="@drawable/ic_launcher"/>
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:layout_below="@id/rlTopBar"
+        android:src="#333333"
+
+        />
+    <TextView
+        android:id="@+id/tvLikesCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="10dp"
+        tools:text="♥ 32"
+        android:layout_below="@id/ivFeedMainImage"
+        android:layout_alignEnd="@id/ivFeedMainImage"
+        android:layout_alignRight="@id/ivFeedMainImage"
+        android:textColor="#FA0015"
+        />
     <TextView
         android:id="@+id/tvFeedCaption"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/ivFeedMainImage"
-        tools:text="Feed post caption"
-        android:paddingTop="10dp"
+        android:layout_toLeftOf="@id/tvLikesCount"
+        android:layout_alignLeft="@id/ivFeedMainImage"
+        tools:text="Feed post caption bbbbbbbbbbbbbbbbbbbbbbb"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
         android:ellipsize="end"
-        android:maxLines="3"/>
+        android:maxLines="5"/>
 
-
+    <TextView
+        android:id="@+id/tvFeedCommentsCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvFeedCaption"
+        tools:text="Feed post comment count"
+        android:paddingTop="5dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textStyle="italic"
+        />
 
 </RelativeLayout>
