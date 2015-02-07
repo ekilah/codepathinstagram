@@ -5,9 +5,13 @@
         <!-- Customize your theme here. -->
     </style>
 
-    <style name="InstaColor">
+    <style name="InstaColorBold">
         <item name="android:textColor">#1C587E</item>
         <item name="android:textStyle">bold</item>
     </style>
-    
+
+    <style name="InstaColor">
+        <item name="android:textColor">#1C587E</item>
+    </style>
+
 </resources>

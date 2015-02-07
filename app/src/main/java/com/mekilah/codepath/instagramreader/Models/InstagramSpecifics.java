@@ -24,6 +24,7 @@ public class InstagramSpecifics{
         public static final String PROFILE_PICTURE = "profile_picture";
         public static final String COUNT = "count";
         public static final String LIKES = "likes";
+        public static final String HASHTAGS = "tags";
 
     }
 

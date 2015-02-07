@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by mekilah on 2/3/15.
@@ -37,15 +38,20 @@ public class FeedItem{
     private String userProfilePictureURL;
     private long likesCount;
     private long totalCommentCount;
+    private ArrayList<String> hashtags;
 
     private final static String USERNAME_HTML_TAGS_BEGIN = "<b><font color='#1C587E'>";
     private final static String USERNAME_HTML_TAGS_END = "</b></font>";
+
+    private final static String HASHTAG_HTML_TAGS_BEGIN = "<font color='#0077CC'>";
+    private final static String HASHTAG_HTML_TAGS_END = "</font>";
 
     private final static int MAX_COMMENTS_TO_SHOW = 5;
 
 
     public FeedItem(){
-        comments = new ArrayList<>();
+        comments = new ArrayList<InstagramComment>();
+        hashtags = new ArrayList<String>();
     }
 
     public static FeedItem BuildFromJSON(JSONObject object){
@@ -53,6 +59,18 @@ public class FeedItem{
         Log.i("INSTA", "feedItemBuild: " + object.toString());
         try{
             // see http://instagram.com/developer/endpoints/media/ for response format
+
+            //hashtags might be optional
+            JSONArray tagsObj = object.optJSONArray(InstagramSpecifics.APIResponseKeys.HASHTAGS);Log.i("INSTA", "Tags: " + tagsObj.toString());
+            if(tagsObj != null  && tagsObj.length() > 0){
+                for(int i = 0; i < tagsObj.length(); ++i){
+                    if(tagsObj.getString(i) == null){
+                        Log.w("INSTA", "Tag index " + i + " null.");
+                        continue;
+                    }
+                    item.hashtags.add(tagsObj.getString(i));
+                }
+            }
 
             //comments are optional
             JSONObject commentsObj = object.optJSONObject(InstagramSpecifics.APIResponseKeys.COMMENTS);
@@ -137,7 +155,7 @@ public class FeedItem{
 
             viewTag.tvUsername.setText(item.username);
             if(item.caption.length() > 0){
-                viewTag.tvCaption.setText(Html.fromHtml(FeedItem.USERNAME_HTML_TAGS_BEGIN + item.username + FeedItem.USERNAME_HTML_TAGS_END + "  " + item.caption));
+                viewTag.tvCaption.setText(Html.fromHtml(FeedItem.USERNAME_HTML_TAGS_BEGIN + item.username + FeedItem.USERNAME_HTML_TAGS_END + "  " + this.getHTMLStringForTextWithHashtags(item.caption, item.hashtags)));
             }else{
                 viewTag.tvCaption.setVisibility(View.GONE);
             }
@@ -165,11 +183,40 @@ public class FeedItem{
             for(int i = showCommentsStartingAtIndex; i < item.comments.size(); ++i){
                 View commentView = layoutInflater.inflate(R.layout.feed_item_comment, viewTag.llFeedComments, false);
                 TextView textView = (TextView) commentView.findViewById(R.id.tvFeedItemComment);
-                textView.setText(Html.fromHtml(FeedItem.USERNAME_HTML_TAGS_BEGIN + item.comments.get(i).username + FeedItem.USERNAME_HTML_TAGS_END + "  " + item.comments.get(i).commentText));
+                textView.setText(Html.fromHtml(FeedItem.USERNAME_HTML_TAGS_BEGIN + item.comments.get(i).username + FeedItem.USERNAME_HTML_TAGS_END + "  " + this.getHTMLStringForTextWithHashtags(item.comments.get(i).commentText)));
                 viewTag.llFeedComments.addView(commentView);
             }
 
             return convertView;
+        }
+
+        /**
+         * Searches the string for the provided hashtags, and makes the string's matching hashtags pretty in HTML
+         * @param stringWithHashtags
+         * @param hashtags
+         * @return the formatted String
+         */
+        private String getHTMLStringForTextWithHashtags(String stringWithHashtags, List<String> hashtags){
+            if(hashtags != null && stringWithHashtags != null){
+                for(String tag : hashtags){
+                    String regex = "(?i)#" + tag;
+                    stringWithHashtags = stringWithHashtags.replaceAll(regex, HASHTAG_HTML_TAGS_BEGIN + "$0" + HASHTAG_HTML_TAGS_END);
+                }
+            }
+            return stringWithHashtags;
+        }
+
+        /**
+         * Searches the string for hashtags without a list of hashtags to look for, and makes them pretty in HTML
+         * @param stringWithHashtags
+         * @return formatted String
+         */
+        private String getHTMLStringForTextWithHashtags(String stringWithHashtags){
+            if(stringWithHashtags == null){
+                return stringWithHashtags;
+            }
+            stringWithHashtags = stringWithHashtags.replaceAll("(?i)#\\w[[\\d\\w]&&[^#\\s]]*", HASHTAG_HTML_TAGS_BEGIN + "$0" + HASHTAG_HTML_TAGS_END);
+            return stringWithHashtags;
         }
 
         class FeedItemViewTag{
