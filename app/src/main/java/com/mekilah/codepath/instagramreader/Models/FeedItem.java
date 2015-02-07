@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.makeramen.RoundedImageView;
@@ -19,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,13 @@ public class FeedItem{
     private ArrayList<InstagramComment> comments;
     private String userProfilePictureURL;
     private long likesCount;
+    private long totalCommentCount;
+
+    private final static String USERNAME_HTML_TAGS_BEGIN = "<b><font color='#1C587E'>";
+    private final static String USERNAME_HTML_TAGS_END = "</b></font>";
+
+    private final static int MAX_COMMENTS_TO_SHOW = 5;
+
 
     public FeedItem(){
         comments = new ArrayList<>();
@@ -43,28 +52,16 @@ public class FeedItem{
         FeedItem item = new FeedItem();
         Log.i("INSTA", "feedItemBuild: " + object.toString());
         try{
-            // object => {createdtime, user=> {username}, caption => {text}, images => {standard => {url}}}
+            // see http://instagram.com/developer/endpoints/media/ for response format
 
-            /*
-                "comments": {
-                "data": [{
-                    "created_time": "1279332030",
-                    "text": "Love the sign here",
-                    "from": {
-                        "username": "mikeyk",
-                        "full_name": "Mikey Krieger",
-                        "id": "4",
-                        "profile_picture": "http://distillery.s3.amazonaws.com/profiles/profile_1242695_75sq_1293915800.jpg"
-                    },
-                    "id": "8"
-                }],
-                "count": 1
-                }
-            */
             //comments are optional
             JSONObject commentsObj = object.optJSONObject(InstagramSpecifics.APIResponseKeys.COMMENTS);
             if(commentsObj != null){
                 JSONArray commentsArrayObj = commentsObj.getJSONArray(InstagramSpecifics.APIResponseKeys.DATA);
+                item.totalCommentCount = commentsObj.getLong(InstagramSpecifics.APIResponseKeys.COUNT); //only 8 comments sent down ever with feed items, but total count also sent
+                if(item.totalCommentCount < 0){
+                    item.totalCommentCount = commentsArrayObj.length(); //just in case server response is bad here
+                }
                 item.comments.ensureCapacity(commentsArrayObj.length());
                 for(int i=0; i<commentsArrayObj.length(); i++){
                     JSONObject commentObj = commentsArrayObj.getJSONObject(i);
@@ -120,9 +117,10 @@ public class FeedItem{
 
             FeedItem item = this.getItem(position);
             FeedItemViewTag viewTag;
+            LayoutInflater layoutInflater = LayoutInflater.from(this.getContext());
 
             if(convertView == null){
-                convertView = LayoutInflater.from(this.getContext()).inflate(R.layout.feed_item, parent, false);
+                convertView = layoutInflater.inflate(R.layout.feed_item, parent, false);
                 viewTag = new FeedItemViewTag();
                 viewTag.tvUsername = (TextView) convertView.findViewById(R.id.tvFeedUsername);
                 viewTag.tvTimestamp = (TextView) convertView.findViewById(R.id.tvFeedItemTimestamp);
@@ -130,19 +128,46 @@ public class FeedItem{
                 viewTag.ivMainImage = (ImageView) convertView.findViewById(R.id.ivFeedMainImage);
                 viewTag.tvLikesCount = (TextView) convertView.findViewById(R.id.tvLikesCount);
                 viewTag.rivFeedUserPicture = (RoundedImageView) convertView.findViewById(R.id.rivFeedUserImage);
+                viewTag.tvCommentsCount = (TextView) convertView.findViewById(R.id.tvFeedCommentsCount);
+                viewTag.llFeedComments = (LinearLayout) convertView.findViewById(R.id.llFeedComments);
                 convertView.setTag(viewTag);
             }else{
                 viewTag = (FeedItemViewTag) convertView.getTag();
             }
 
             viewTag.tvUsername.setText(item.username);
-            viewTag.tvCaption.setText(Html.fromHtml("<b><font color='#1C587E'>" + item.username + "</b></font>" + "  " + item.caption)); //.setText(item.caption);
+            if(item.caption.length() > 0){
+                viewTag.tvCaption.setText(Html.fromHtml(FeedItem.USERNAME_HTML_TAGS_BEGIN + item.username + FeedItem.USERNAME_HTML_TAGS_END + "  " + item.caption));
+            }else{
+                viewTag.tvCaption.setVisibility(View.GONE);
+            }
             viewTag.tvTimestamp.setText(DateUtils.getRelativeTimeSpanString(item.timestampInSecs *1000, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS));
             Picasso.with(this.getContext()).load(item.imageURL).placeholder(R.drawable.loading_animation).into(viewTag.ivMainImage);
             Picasso.with(this.getContext()).load(item.userProfilePictureURL).placeholder(R.drawable.loading_animation).into(viewTag.rivFeedUserPicture);
-            //TODO figure out how to loc with integer insertion
-            viewTag.tvLikesCount.setText("♥ " + String.valueOf(item.likesCount));
 
+            viewTag.tvLikesCount.setText("♥  " + NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.likesCount) + " likes");
+
+            viewTag.llFeedComments.removeAllViews();
+
+            //comments
+            int showCommentsStartingAtIndex = 0;
+            if(item.totalCommentCount > FeedItem.MAX_COMMENTS_TO_SHOW){
+                //show last FeedItem.MAX_COMMENTS_TO_SHOW comments only
+                showCommentsStartingAtIndex = item.comments.size() - FeedItem.MAX_COMMENTS_TO_SHOW; //comments array can have less than totalCommentCount items (server doesn't send them all). this still works either way, even if our max number of comments to show is the same number of comments received but less than the total count
+                viewTag.tvCommentsCount.setVisibility(View.VISIBLE);
+                viewTag.tvCommentsCount.setText(NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.totalCommentCount - FeedItem.MAX_COMMENTS_TO_SHOW) + " other comments not shown");
+
+            }else{
+                //comments count should only show if there are more hidden
+                viewTag.tvCommentsCount.setVisibility(View.GONE);
+            }
+
+            for(int i = showCommentsStartingAtIndex; i < item.comments.size(); ++i){
+                View commentView = layoutInflater.inflate(R.layout.feed_item_comment, viewTag.llFeedComments, false);
+                TextView textView = (TextView) commentView.findViewById(R.id.tvFeedItemComment);
+                textView.setText(Html.fromHtml(FeedItem.USERNAME_HTML_TAGS_BEGIN + item.comments.get(i).username + FeedItem.USERNAME_HTML_TAGS_END + "  " + item.comments.get(i).commentText));
+                viewTag.llFeedComments.addView(commentView);
+            }
 
             return convertView;
         }
@@ -154,6 +179,8 @@ public class FeedItem{
             TextView tvCaption;
             TextView tvLikesCount;
             RoundedImageView rivFeedUserPicture;
+            TextView tvCommentsCount;
+            LinearLayout llFeedComments;
         }
     }
 

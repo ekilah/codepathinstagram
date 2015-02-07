@@ -72,23 +72,22 @@
         android:paddingRight="10dp"
         tools:text="♥ 32 likes"
         android:layout_below="@id/ivFeedMainImage"
-        android:layout_alignEnd="@id/ivFeedMainImage"
-        android:layout_alignRight="@id/ivFeedMainImage"
+        android:layout_alignStart="@id/ivFeedMainImage"
+        android:layout_alignLeft="@id/ivFeedMainImage"
+        android:layout_marginLeft="10dp"
         style="@style/InstaColor"
         />
     <TextView
         android:id="@+id/tvFeedCaption"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/ivFeedMainImage"
-        android:layout_toLeftOf="@id/tvLikesCount"
+        android:layout_below="@id/tvLikesCount"
         android:layout_alignLeft="@id/ivFeedMainImage"
-        tools:text="Feed post caption bbbbbbbbbbbbbbbbbbbbbbb"
+        tools:text="Feed post caption bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
-        android:ellipsize="end"
-        android:maxLines="5"/>
-
+        android:layout_marginTop="5dp"
+        />
     <TextView
         android:id="@+id/tvFeedCommentsCount"
         android:layout_width="wrap_content"
@@ -102,5 +101,20 @@
         android:maxLines="1"
         android:textStyle="italic"
         />
+    <LinearLayout
+        android:id="@+id/llFeedComments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvFeedCommentsCount"
+        android:layout_alignLeft="@id/tvFeedCommentsCount"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_marginTop="5dp"
+        android:orientation="vertical"
+        >
+        <!-- code inserts comments here-->
+    </LinearLayout>
+
+
 
 </RelativeLayout>
