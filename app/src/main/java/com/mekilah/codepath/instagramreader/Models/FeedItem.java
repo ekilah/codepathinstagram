@@ -163,7 +163,7 @@ public class FeedItem{
             Picasso.with(this.getContext()).load(item.imageURL).placeholder(R.drawable.loading_animation).into(viewTag.ivMainImage);
             Picasso.with(this.getContext()).load(item.userProfilePictureURL).placeholder(R.drawable.loading_animation).into(viewTag.rivFeedUserPicture);
 
-            viewTag.tvLikesCount.setText("♥  " + NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.likesCount) + " " + R.string.likes_lowercase);
+            viewTag.tvLikesCount.setText("♥  " + NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.likesCount) + " " + this.getContext().getText(R.string.likes_lowercase));
 
             viewTag.llFeedComments.removeAllViews();
 
@@ -173,7 +173,7 @@ public class FeedItem{
                 //show last FeedItem.MAX_COMMENTS_TO_SHOW comments only
                 showCommentsStartingAtIndex = item.comments.size() - FeedItem.MAX_COMMENTS_TO_SHOW; //comments array can have less than totalCommentCount items (server doesn't send them all). this still works either way, even if our max number of comments to show is the same number of comments received but less than the total count
                 viewTag.tvCommentsCount.setVisibility(View.VISIBLE);
-                viewTag.tvCommentsCount.setText(NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.totalCommentCount - FeedItem.MAX_COMMENTS_TO_SHOW) + " " + R.string.other_comments_not_shown_lowercase);
+                viewTag.tvCommentsCount.setText(NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.totalCommentCount - FeedItem.MAX_COMMENTS_TO_SHOW) + " " + this.getContext().getText(R.string.other_comments_not_shown_lowercase));
 
             }else{
                 //comments count should only show if there are more hidden
