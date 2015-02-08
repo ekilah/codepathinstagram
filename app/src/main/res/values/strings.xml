@@ -2,7 +2,8 @@
 <resources>
 
     <string name="app_name">InstagramReader</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="likes_lowercase">likes</string>
+    <string name="other_comments_not_shown_lowercase">other comments not shown</string>
 
 </resources>

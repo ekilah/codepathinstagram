@@ -27,7 +27,7 @@ import org.json.JSONObject;
 import java.net.URI;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -68,11 +68,10 @@ public class FeedItem{
             // see http://instagram.com/developer/endpoints/media/ for response format
 
             //hashtags might be optional
-            JSONArray tagsObj = object.optJSONArray(InstagramSpecifics.APIResponseKeys.HASHTAGS);Log.i("INSTA", "Tags: " + tagsObj.toString());
+            JSONArray tagsObj = object.optJSONArray(InstagramSpecifics.APIResponseKeys.HASHTAGS);
             if(tagsObj != null  && tagsObj.length() > 0){
                 for(int i = 0; i < tagsObj.length(); ++i){
                     if(tagsObj.getString(i) == null){
-                        Log.w("INSTA", "Tag index " + i + " null.");
                         continue;
                     }
                     item.hashtags.add(tagsObj.getString(i));
@@ -254,7 +253,7 @@ public class FeedItem{
             
             Picasso.with(this.getContext()).load(item.userProfilePictureURL).placeholder(R.drawable.loading_animation).into(viewTag.rivFeedUserPicture);
 
-            viewTag.tvLikesCount.setText("♥  " + NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.likesCount) + " likes");
+            viewTag.tvLikesCount.setText("♥  " + NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.likesCount) + " " + this.getContext().getText(R.string.likes_lowercase));
 
             viewTag.llFeedComments.removeAllViews();
 
@@ -264,7 +263,7 @@ public class FeedItem{
                 //show last FeedItem.MAX_COMMENTS_TO_SHOW comments only
                 showCommentsStartingAtIndex = item.comments.size() - FeedItem.MAX_COMMENTS_TO_SHOW; //comments array can have less than totalCommentCount items (server doesn't send them all). this still works either way, even if our max number of comments to show is the same number of comments received but less than the total count
                 viewTag.tvCommentsCount.setVisibility(View.VISIBLE);
-                viewTag.tvCommentsCount.setText(NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.totalCommentCount - FeedItem.MAX_COMMENTS_TO_SHOW) + " other comments not shown");
+                viewTag.tvCommentsCount.setText(NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.totalCommentCount - FeedItem.MAX_COMMENTS_TO_SHOW) + " " + this.getContext().getText(R.string.other_comments_not_shown_lowercase));
 
             }else{
                 //comments count should only show if there are more hidden
@@ -289,6 +288,14 @@ public class FeedItem{
          */
         private String getHTMLStringForTextWithHashtags(String stringWithHashtags, List<String> hashtags){
             if(hashtags != null && stringWithHashtags != null){
+
+                //sort so that longest hashtags are first. this prevents #foobar from being messed up by #foo
+                java.util.Collections.sort(hashtags, new Comparator<String>(){
+                    @Override
+                    public int compare(String lhs, String rhs){
+                        return rhs.length() - lhs.length();
+                    }
+                });
                 for(String tag : hashtags){
                     String regex = "(?i)#" + tag;
                     stringWithHashtags = stringWithHashtags.replaceAll(regex, HASHTAG_HTML_TAGS_BEGIN + "$0" + HASHTAG_HTML_TAGS_END);
@@ -306,6 +313,7 @@ public class FeedItem{
             if(stringWithHashtags == null){
                 return stringWithHashtags;
             }
+            //regex: ignore case, search for # followed by a word character, followed by 0 or more word or digit characters that aren't spaces or another #, and be greedy
             stringWithHashtags = stringWithHashtags.replaceAll("(?i)#\\w[[\\d\\w]&&[^#\\s]]*", HASHTAG_HTML_TAGS_BEGIN + "$0" + HASHTAG_HTML_TAGS_END);
             return stringWithHashtags;
         }

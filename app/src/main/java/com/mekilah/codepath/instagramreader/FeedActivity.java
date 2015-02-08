@@ -53,7 +53,7 @@ public class FeedActivity extends ActionBarActivity {
         ActionBarPullToRefresh.from(this)
                 // Mark All Children as pullable
                 .allChildrenArePullable()
-                        // Set a OnRefreshListener
+                // Set a OnRefreshListener
                 .listener(new OnRefreshListener(){
                     @Override
                     public void onRefreshStarted(View view){
