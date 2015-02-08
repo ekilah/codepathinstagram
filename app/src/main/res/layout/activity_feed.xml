@@ -19,6 +19,7 @@
         android:layout_alignParentTop="true"
         android:scrollbars="vertical"
         android:fastScrollEnabled="true"
+
         >
     </ListView>
 

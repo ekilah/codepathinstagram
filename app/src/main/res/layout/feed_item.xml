@@ -54,27 +54,51 @@
 
         />
     </RelativeLayout>
-    <ImageView
-        android:id="@+id/ivFeedMainImage"
-        android:layout_width="match_parent"
+    <RelativeLayout
+        android:id="@+id/rlMediaBox"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-
-        android:adjustViewBounds="true"
-        android:scaleType="fitCenter"
         android:layout_below="@id/rlTopBar"
-        android:src="#333333"
+        >
+        <VideoView
+            android:id="@+id/vvFeedMainVideo"
+            android:layout_width="fill_parent"
+            android:layout_height="360dp"
+            android:layout_marginBottom="10dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
 
-        />
+            />
+        <ImageView
+            android:id="@+id/ivFeedMainImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:src="#333333"
+
+            />
+
+        <ImageView
+            android:id="@+id/ivPlayButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/play_button"
+            android:tint="#A01C587E"/>
+    </RelativeLayout>
     <TextView
         android:id="@+id/tvLikesCount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingRight="10dp"
         tools:text="♥ 32 likes"
-        android:layout_below="@id/ivFeedMainImage"
-        android:layout_alignStart="@id/ivFeedMainImage"
-        android:layout_alignLeft="@id/ivFeedMainImage"
+        android:layout_below="@id/rlMediaBox"
+        android:layout_alignStart="@id/rlMediaBox"
+        android:layout_alignLeft="@id/rlMediaBox"
         android:layout_marginLeft="10dp"
         style="@style/InstaColorBold"
         />
@@ -83,7 +107,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/tvLikesCount"
-        android:layout_alignLeft="@id/ivFeedMainImage"
+        android:layout_alignLeft="@id/rlMediaBox"
         tools:text="Feed post caption bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"

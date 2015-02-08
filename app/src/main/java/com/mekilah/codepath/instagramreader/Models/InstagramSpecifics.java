@@ -25,6 +25,10 @@ public class InstagramSpecifics{
         public static final String COUNT = "count";
         public static final String LIKES = "likes";
         public static final String HASHTAGS = "tags";
+        public static final String VIDEOS = "videos";
+        public static final String TYPE = "type";
+        public static final String TYPE_VIDEO = "video";
+        public static final String TYPE_IMAGE = "image";
 
     }
 

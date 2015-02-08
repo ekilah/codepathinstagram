@@ -1,16 +1,20 @@
 package com.mekilah.codepath.instagramreader.Models;
 
 import android.content.Context;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import com.makeramen.RoundedImageView;
 import com.mekilah.codepath.instagramreader.R;
@@ -20,8 +24,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URI;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,7 +37,7 @@ import java.util.Objects;
 public class FeedItem{
 
     private String username;
-    private String imageURL;
+    private String mediaURL;//image or video
     private String caption;
     private long timestampInSecs;
     private ArrayList<InstagramComment> comments;
@@ -39,6 +45,8 @@ public class FeedItem{
     private long likesCount;
     private long totalCommentCount;
     private ArrayList<String> hashtags;
+    private enum MediaType {video, image};
+    private MediaType mediaType;
 
     private final static String USERNAME_HTML_TAGS_BEGIN = "<b><font color='#1C587E'>";
     private final static String USERNAME_HTML_TAGS_END = "</b></font>";
@@ -47,7 +55,6 @@ public class FeedItem{
     private final static String HASHTAG_HTML_TAGS_END = "</font>";
 
     private final static int MAX_COMMENTS_TO_SHOW = 5;
-
 
     public FeedItem(){
         comments = new ArrayList<InstagramComment>();
@@ -104,7 +111,14 @@ public class FeedItem{
                 item.caption = captionObj.getString(InstagramSpecifics.APIResponseKeys.TEXT);
             }
 
-            item.imageURL = object.getJSONObject(InstagramSpecifics.APIResponseKeys.IMAGES).getJSONObject(InstagramSpecifics.APIResponseKeys.STANDARD_RES).getString(InstagramSpecifics.APIResponseKeys.URL);
+            //image or video?
+            item.mediaType = (object.getString(InstagramSpecifics.APIResponseKeys.TYPE).equalsIgnoreCase(InstagramSpecifics.APIResponseKeys.TYPE_VIDEO) ? MediaType.video : MediaType.image);
+            if(item.mediaType == MediaType.image){
+                item.mediaURL = object.getJSONObject(InstagramSpecifics.APIResponseKeys.IMAGES).getJSONObject(InstagramSpecifics.APIResponseKeys.STANDARD_RES).getString(InstagramSpecifics.APIResponseKeys.URL);
+            }else{
+                item.mediaURL = object.getJSONObject(InstagramSpecifics.APIResponseKeys.VIDEOS).getJSONObject(InstagramSpecifics.APIResponseKeys.STANDARD_RES).getString(InstagramSpecifics.APIResponseKeys.URL);
+            }
+
             item.username = object.getJSONObject(InstagramSpecifics.APIResponseKeys.USER).getString(InstagramSpecifics.APIResponseKeys.USERNAME);
             item.userProfilePictureURL = object.getJSONObject(InstagramSpecifics.APIResponseKeys.USER).getString(InstagramSpecifics.APIResponseKeys.PROFILE_PICTURE);
 
@@ -134,7 +148,7 @@ public class FeedItem{
         public View getView(int position, View convertView, ViewGroup parent){
 
             FeedItem item = this.getItem(position);
-            FeedItemViewTag viewTag;
+            final FeedItemViewTag viewTag;
             LayoutInflater layoutInflater = LayoutInflater.from(this.getContext());
 
             if(convertView == null){
@@ -148,6 +162,8 @@ public class FeedItem{
                 viewTag.rivFeedUserPicture = (RoundedImageView) convertView.findViewById(R.id.rivFeedUserImage);
                 viewTag.tvCommentsCount = (TextView) convertView.findViewById(R.id.tvFeedCommentsCount);
                 viewTag.llFeedComments = (LinearLayout) convertView.findViewById(R.id.llFeedComments);
+                viewTag.vvMainVideo = (VideoView) convertView.findViewById(R.id.vvFeedMainVideo);
+                viewTag.ivPlayButton = (ImageView) convertView.findViewById(R.id.ivPlayButton);
                 convertView.setTag(viewTag);
             }else{
                 viewTag = (FeedItemViewTag) convertView.getTag();
@@ -160,7 +176,82 @@ public class FeedItem{
                 viewTag.tvCaption.setVisibility(View.GONE);
             }
             viewTag.tvTimestamp.setText(DateUtils.getRelativeTimeSpanString(item.timestampInSecs *1000, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS));
-            Picasso.with(this.getContext()).load(item.imageURL).placeholder(R.drawable.loading_animation).into(viewTag.ivMainImage);
+
+            //video or picture?
+            if(item.mediaType == MediaType.image){
+                Picasso.with(this.getContext()).load(item.mediaURL).placeholder(R.drawable.loading_animation).into(viewTag.ivMainImage);
+                viewTag.vvMainVideo.setVisibility(View.GONE);
+                viewTag.ivMainImage.setVisibility(View.VISIBLE);
+                viewTag.ivPlayButton.setVisibility(View.GONE);
+            }else{
+                Log.w("INSTA", "setting up video.");
+
+                viewTag.vvMainVideo.clearAnimation();
+                viewTag.vvMainVideo.destroyDrawingCache();
+                Picasso.with(this.getContext()).load(R.drawable.loading_animation).into(viewTag.ivMainImage);
+                viewTag.vvMainVideo.setVisibility(View.VISIBLE);//hide until load
+                viewTag.vvMainVideo.setZOrderMediaOverlay(true);
+
+                viewTag.vvMainVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener(){
+                    @Override
+                    public void onPrepared(MediaPlayer mp){
+                        Log.w("INSTA", "video prepared, clickable");
+                        viewTag.vvMainVideo.setClickable(true);
+                        viewTag.ivMainImage.setVisibility(View.INVISIBLE);//invisible, not gone, so the size of the image view keeps the space for the video
+                        viewTag.ivPlayButton.setVisibility(View.VISIBLE);
+
+                        //height needs to be reset now that the view has the video to check for size with
+                        ViewGroup.LayoutParams params = viewTag.vvMainVideo.getLayoutParams();
+                        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                        viewTag.vvMainVideo.setLayoutParams(params);
+                        //viewTag.vvMainVideo.pause();
+                    }
+                });
+
+                viewTag.vvMainVideo.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+                    @Override
+                    public void onCompletion(MediaPlayer mp){
+                        viewTag.ivPlayButton.setVisibility(View.VISIBLE);
+                    }
+                });
+
+                viewTag.vvMainVideo.setOnTouchListener(new View.OnTouchListener(){
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event){
+                        if(event.getAction() == MotionEvent.ACTION_DOWN){
+                            //this allows us to actually process the UP later
+                            return true;
+                        }else if(event.getAction() == MotionEvent.ACTION_UP){
+                            if(viewTag.vvMainVideo.isPlaying()){
+                                Log.w("INSTA", "video stopping");
+                                viewTag.vvMainVideo.pause();
+                                viewTag.ivPlayButton.setVisibility(View.VISIBLE);
+                            }else{
+                                Log.w("INSTA", "video starting");
+                                viewTag.vvMainVideo.start();
+                                viewTag.ivPlayButton.setVisibility(View.GONE);
+
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+
+                viewTag.vvMainVideo.setOnErrorListener(new MediaPlayer.OnErrorListener(){
+                    @Override
+                    public boolean onError(MediaPlayer mp, int what, int extra){
+                        Log.w("INSTA", "error with video");
+                        return false;
+                    }
+                });
+                viewTag.vvMainVideo.stopPlayback();
+                viewTag.vvMainVideo.setVideoURI(Uri.parse(item.mediaURL));
+                viewTag.vvMainVideo.requestFocus();
+                //viewTag.vvMainVideo.start();
+                //viewTag.vvMainVideo.setClickable(false);
+            }
+            
             Picasso.with(this.getContext()).load(item.userProfilePictureURL).placeholder(R.drawable.loading_animation).into(viewTag.rivFeedUserPicture);
 
             viewTag.tvLikesCount.setText("♥  " + NumberFormat.getNumberInstance(convertView.getResources().getConfiguration().locale).format(item.likesCount) + " likes");
@@ -228,6 +319,8 @@ public class FeedItem{
             RoundedImageView rivFeedUserPicture;
             TextView tvCommentsCount;
             LinearLayout llFeedComments;
+            VideoView vvMainVideo;
+            ImageView ivPlayButton;
         }
     }
 
