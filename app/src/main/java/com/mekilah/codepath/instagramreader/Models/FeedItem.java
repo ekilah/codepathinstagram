@@ -3,8 +3,16 @@ package com.mekilah.codepath.instagramreader.Models;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.graphics.Color;
 import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.format.DateUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -13,8 +21,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.VideoView;
+import android.widget.Toast;
+
 
 import com.makeramen.RoundedImageView;
 import com.mekilah.codepath.instagramreader.R;
@@ -23,6 +34,7 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.net.URI;
 import java.text.NumberFormat;
@@ -30,6 +42,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by mekilah on 2/3/15.
@@ -163,14 +177,28 @@ public class FeedItem{
                 viewTag.llFeedComments = (LinearLayout) convertView.findViewById(R.id.llFeedComments);
                 viewTag.vvMainVideo = (VideoView) convertView.findViewById(R.id.vvFeedMainVideo);
                 viewTag.ivPlayButton = (ImageView) convertView.findViewById(R.id.ivPlayButton);
+                viewTag.rlTopBar = (RelativeLayout) convertView.findViewById(R.id.rlTopBar);
                 convertView.setTag(viewTag);
             }else{
                 viewTag = (FeedItemViewTag) convertView.getTag();
             }
 
-            viewTag.tvUsername.setText(item.username);
+            SpannableStringBuilder stringBuilder = new SpannableStringBuilder();
+
+            viewTag.tvUsername.setText(FeedItem.getSpannableStringForUsername(item.username));
+            viewTag.tvUsername.setMovementMethod(LinkMovementMethod.getInstance());
+            viewTag.tvUsername.setHighlightColor(Color.TRANSPARENT);
+
+            stringBuilder.clearSpans();
+            stringBuilder.clear();
             if(item.caption.length() > 0){
-                viewTag.tvCaption.setText(Html.fromHtml(FeedItem.USERNAME_HTML_TAGS_BEGIN + item.username + FeedItem.USERNAME_HTML_TAGS_END + "  " + this.getHTMLStringForTextWithHashtags(item.caption, item.hashtags)));
+                //viewTag.tvCaption.setText(Html.fromHtml(FeedItem.USERNAME_HTML_TAGS_BEGIN + item.username + FeedItem.USERNAME_HTML_TAGS_END + "  " + FeedItem.getHTMLStringForTextWithHashtags(item.caption, item.hashtags)));
+                stringBuilder.append(FeedItem.getSpannableStringForUsername(item.username));
+                stringBuilder.append(" ");
+                stringBuilder.append(FeedItem.getSpannableStringForHashtagsAndUsernames(item.caption));
+                viewTag.tvCaption.setText(stringBuilder);
+                viewTag.tvCaption.setMovementMethod(LinkMovementMethod.getInstance());
+                viewTag.tvCaption.setHighlightColor(Color.TRANSPARENT);
             }else{
                 viewTag.tvCaption.setVisibility(View.GONE);
             }
@@ -273,49 +301,19 @@ public class FeedItem{
             for(int i = showCommentsStartingAtIndex; i < item.comments.size(); ++i){
                 View commentView = layoutInflater.inflate(R.layout.feed_item_comment, viewTag.llFeedComments, false);
                 TextView textView = (TextView) commentView.findViewById(R.id.tvFeedItemComment);
-                textView.setText(Html.fromHtml(FeedItem.USERNAME_HTML_TAGS_BEGIN + item.comments.get(i).username + FeedItem.USERNAME_HTML_TAGS_END + "  " + this.getHTMLStringForTextWithHashtags(item.comments.get(i).commentText)));
+                stringBuilder.clear();
+                stringBuilder.clearSpans();
+                stringBuilder.append(FeedItem.getSpannableStringForUsername(item.comments.get(i).username));
+                stringBuilder.append(" ");
+                stringBuilder.append(FeedItem.getSpannableStringForHashtagsAndUsernames(item.comments.get(i).commentText));
+
+                textView.setText(stringBuilder);
+                textView.setMovementMethod(LinkMovementMethod.getInstance());
+                textView.setHighlightColor(Color.TRANSPARENT);
                 viewTag.llFeedComments.addView(commentView);
             }
 
             return convertView;
-        }
-
-        /**
-         * Searches the string for the provided hashtags, and makes the string's matching hashtags pretty in HTML
-         * @param stringWithHashtags
-         * @param hashtags
-         * @return the formatted String
-         */
-        private String getHTMLStringForTextWithHashtags(String stringWithHashtags, List<String> hashtags){
-            if(hashtags != null && stringWithHashtags != null){
-
-                //sort so that longest hashtags are first. this prevents #foobar from being messed up by #foo
-                java.util.Collections.sort(hashtags, new Comparator<String>(){
-                    @Override
-                    public int compare(String lhs, String rhs){
-                        return rhs.length() - lhs.length();
-                    }
-                });
-                for(String tag : hashtags){
-                    String regex = "(?i)#" + tag;
-                    stringWithHashtags = stringWithHashtags.replaceAll(regex, HASHTAG_HTML_TAGS_BEGIN + "$0" + HASHTAG_HTML_TAGS_END);
-                }
-            }
-            return stringWithHashtags;
-        }
-
-        /**
-         * Searches the string for hashtags without a list of hashtags to look for, and makes them pretty in HTML
-         * @param stringWithHashtags
-         * @return formatted String
-         */
-        private String getHTMLStringForTextWithHashtags(String stringWithHashtags){
-            if(stringWithHashtags == null){
-                return stringWithHashtags;
-            }
-            //regex: ignore case, search for # followed by a word character, followed by 0 or more word or digit characters that aren't spaces or another #, and be greedy
-            stringWithHashtags = stringWithHashtags.replaceAll("(?i)#\\w[[\\d\\w]&&[^#\\s]]*", HASHTAG_HTML_TAGS_BEGIN + "$0" + HASHTAG_HTML_TAGS_END);
-            return stringWithHashtags;
         }
 
         class FeedItemViewTag{
@@ -329,6 +327,7 @@ public class FeedItem{
             LinearLayout llFeedComments;
             VideoView vvMainVideo;
             ImageView ivPlayButton;
+            RelativeLayout rlTopBar;
         }
     }
 
@@ -336,5 +335,125 @@ public class FeedItem{
         String username;
         String profilePictureURL;
         String commentText;
+    }
+
+
+    /**
+     * Searches the string for the provided hashtags, and makes the string's matching hashtags pretty in HTML
+     * @param stringWithHashtags
+     * @param hashtags
+     * @return the formatted String
+     */
+    private static String getHTMLStringForTextWithHashtags(String stringWithHashtags, List<String> hashtags){
+        if(hashtags != null && stringWithHashtags != null){
+
+            //sort so that longest hashtags are first. this prevents #foobar from being messed up by #foo
+            java.util.Collections.sort(hashtags, new Comparator<String>(){
+                @Override
+                public int compare(String lhs, String rhs){
+                    return rhs.length() - lhs.length();
+                }
+            });
+            for(String tag : hashtags){
+                String regex = "(?i)#" + tag;
+                stringWithHashtags = stringWithHashtags.replaceAll(regex, HASHTAG_HTML_TAGS_BEGIN + "$0" + HASHTAG_HTML_TAGS_END);
+            }
+        }
+        return stringWithHashtags;
+    }
+
+    /**
+     * Searches the string for hashtags without a list of hashtags to look for, and makes them pretty in HTML
+     * @param stringWithHashtags
+     * @return formatted String
+     */
+    private static String getHTMLStringForTextWithHashtags(String stringWithHashtags){
+        if(stringWithHashtags == null){
+            return stringWithHashtags;
+        }
+        //regex: ignore case, search for # followed by a word character, followed by 0 or more word or digit characters that aren't spaces or another #, and be greedy
+        stringWithHashtags = stringWithHashtags.replaceAll("(?i)#\\w[[\\d\\w]&&[^#\\s]]*", HASHTAG_HTML_TAGS_BEGIN + "$0" + HASHTAG_HTML_TAGS_END);
+        return stringWithHashtags;
+    }
+
+    public static CharSequence getSpannableStringForHashtagsAndUsernames(String input){
+        if(input == null || input.length() <= 0){
+            return input;
+        }
+
+        SpannableStringBuilder stringBuilder = new SpannableStringBuilder(input);
+
+        Pattern pattern = Pattern.compile("(?i)([#@])(\\w[[\\d\\w]&&[^#@\\s]]*)");
+        Matcher matcher = pattern.matcher(input);
+
+        while(matcher.find()){
+            ClickableSpan span;
+            if(matcher.group(1).equals("#")){
+                span = new HashtagSpan();
+            }else{
+                span = new UsernameSpan();
+            }
+
+            stringBuilder.setSpan(span, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+
+        return stringBuilder;
+    }
+
+    public static CharSequence getSpannableStringForUsername(String input){
+        if(input == null || input.length() <= 0){
+            return input;
+        }
+
+        SpannableStringBuilder stringBuilder = new SpannableStringBuilder(input);
+        ClickableSpan span = new UsernameSpan(true);
+
+        stringBuilder.setSpan(span, 0, input.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return stringBuilder;
+    }
+
+    static class HashtagSpan extends ClickableSpan{
+
+        @Override
+        public void onClick(View widget){
+            Log.i("INSTA", "Hashtag clicked");
+            TextView tv = (TextView) widget;
+            Spanned spanned = (Spanned) tv.getText();
+
+            Toast.makeText(widget.getContext(), "Hashtag: " + spanned.subSequence(spanned.getSpanStart(this), spanned.getSpanEnd(this)), Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void updateDrawState(TextPaint ds){
+            ds.setUnderlineText(false);
+            ds.setColor(Color.parseColor("#1C587E"));
+        }
+    }
+
+    static class UsernameSpan extends ClickableSpan{
+        private boolean bold;
+        public UsernameSpan(boolean bold){
+            this.bold = bold;
+        }
+        public UsernameSpan(){
+            this.bold = false;
+        }
+
+        @Override
+        public void onClick(View widget){
+            Log.i("INSTA", "username clicked");
+            TextView tv = (TextView) widget;
+            Spanned spanned = (Spanned) tv.getText();
+
+            Toast.makeText(widget.getContext(), "Username: " + spanned.subSequence(spanned.getSpanStart(this), spanned.getSpanEnd(this)), Toast.LENGTH_SHORT).show();
+
+        }
+
+        @Override
+        public void updateDrawState(TextPaint ds){
+            ds.setUnderlineText(false);
+            ds.setColor(Color.parseColor("#1C587E"));
+            ds.setFakeBoldText(this.bold);
+        }
     }
 }
