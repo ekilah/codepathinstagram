@@ -46,6 +46,7 @@ public class FeedActivity extends ActionBarActivity {
         feedItemAdapter = new FeedItem.FeedItemAdapter(this, feedItems);
 
         lvFeedItems = (ListView) this.findViewById(R.id.lvFeedItems);
+        lvFeedItems.setItemsCanFocus(true);//allows children to be clicked (spannable text)
         lvFeedItems.setAdapter(feedItemAdapter);
 
         ptrFeedItems = (PullToRefreshLayout) this.findViewById(R.id.ptrFeedItems);
