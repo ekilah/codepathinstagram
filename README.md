@@ -26,7 +26,7 @@ An Android app for reading the popular public feeds on Instagram, built during a
   - [x] Hashtag visualization in comments and caption (even works in RTL languages out of the box)
   - [x] Visualization of total number of comments
   - [x] Quick scroll bar
-  - [x] Clickable hashtags and usernames (see separate demo gif below)
+  - [x] Clickable hashtags and usernames
 - My own features not in master
   - [x] Video support (see demo gif below)
   
@@ -37,8 +37,6 @@ enjoy these demos of the latest features (made with [LICEcap](http://www.cockos.
 Master:
 
 ![Demo GIF](https://github.com/ekilah/codepathinstagram/blob/master/demo.gif)
-
-![Demo Clickables GIF](https://github.com/ekilah/codepathinstagram/blob/master/demo_clickables.gif)
 
 [Branch video_firstattempt](https://github.com/ekilah/codepathinstagram/tree/video_firstattempt) :
 
