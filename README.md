@@ -3,7 +3,7 @@ An Android app for reading the popular public feeds on Instagram, built during a
 
 #### Details
 - How much time did this take?
-  - This took me probably close to 10 hours of dev time. Most of that was spent on the UI layouts (including iterations)
+  - This took me probably close to 20 hours of dev time with all the extra features. Most of that was spent on the UI layouts (including iterations)
 - Required user stories completed:
   - [x] User can scroll through current popular photos from Instagram 
   - [x] For each photo displayed, user can see the following details:
